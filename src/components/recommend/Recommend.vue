@@ -16,7 +16,7 @@
           <ul>
             <li @click="selectItem(item)" v-for="(item,index) in discList" :key="index" class="item">
               <div class="icon">
-                <img width="60" height="60" v-lazy="item.imgurl">
+                <img width="60" height="60" :src="item.imgurl">
               </div>
               <div class="text">
                 <h2 class="name" v-html="item.creator.name"></h2>
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-  import {getRecommend} from '@/api/recommend'
+  import {getRecommend, getDiscList} from '@/api/recommend'
   import Slider from '@/base/slider/Slider'
 
   export default {
@@ -51,12 +51,19 @@
     },
     created () {
       this._getRecommend()
+      this._getDiscList()
     },
     methods: {
       _getRecommend () {
         getRecommend().then((res) => {
-          console.log(res.data.slider)
+          // console.log(res.data.slider)
           this.recommends = res.data.slider
+        })
+      },
+      _getDiscList () {
+        getDiscList().then((res) => {
+          console.log(res)
+          this.discList = res.data.list
         })
       },
       selectItem (item) {

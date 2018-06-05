@@ -45,6 +45,14 @@
           this._play()
         }
       }, 20)
+
+      window.addEventListener('resize', () => {
+        if (!this.slider) {
+          return
+        }
+        this._setSliderWidth(true)
+        this.slider.refresh()
+      })
     },
     methods: {
       _setSliderWidth () {
@@ -73,7 +81,8 @@
           snap: true,
           snapLoop: this.loop,
           snapThreshold: 0.3,
-          snapSpeed: 400
+          snapSpeed: 400,
+          click: true
         })
         this.slider.on('scrollEnd', () => {
           let pageindex = this.slider.getCurrentPage().pageX
@@ -97,6 +106,9 @@
           this.slider.goToPage(pageindex, 0, 400)
         }, this.interval)
       }
+    },
+    destroyed () {
+      clearTimeout(this.timer)
     }
   }
 </script>
