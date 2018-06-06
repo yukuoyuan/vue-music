@@ -1,12 +1,12 @@
 <template>
   <div class="recommend" ref="recommend">
-    <div ref="scroll" class="recommend-content" :data="discList">
+    <scroll ref="scroll" class="recommend-content" :data="discList">
       <div>
         <div v-if="recommends.length" class="slider-wrapper" ref="sliderWrapper">
           <slider>
             <div v-for="(item,index) in recommends" :key="index">
               <a :href="item.linkUrl">
-                <img class="needsclick" :src="item.picUrl">
+                <img class="needsclick" :src="item.picUrl" @load="loadImage">
               </a>
             </div>
           </slider>
@@ -16,7 +16,7 @@
           <ul>
             <li @click="selectItem(item)" v-for="(item,index) in discList" :key="index" class="item">
               <div class="icon">
-                <img width="60" height="60" :src="item.imgurl">
+                <img width="60" height="60" v-lazy="item.imgurl">
               </div>
               <div class="text">
                 <h2 class="name" v-html="item.creator.name"></h2>
@@ -27,9 +27,9 @@
         </div>
       </div>
       <div class="loading-container" v-show="!discList.length">
-        <!--<loading></loading>-->
+        <loading></loading>
       </div>
-    </div>
+    </scroll>
     <!--<router-view></router-view>-->
   </div>
 </template>
@@ -37,16 +37,21 @@
 <script>
   import {getRecommend, getDiscList} from '@/api/recommend'
   import Slider from '@/base/slider/Slider'
+  import Scroll from '@/base/scroll/Scroll'
+  import Loading from '@/base/loading/Loading'
 
   export default {
     name: 'Recommend',
     components: {
-      Slider
+      Slider,
+      Scroll,
+      Loading
     },
     data () {
       return {
         recommends: [],
-        discList: []
+        discList: [],
+        checkLoad: false
       }
     },
     created () {
@@ -67,6 +72,12 @@
         })
       },
       selectItem (item) {
+      },
+      loadImage () {
+        if (!this.checkLoad) {
+          this.$refs.scroll.refresh()
+          this.checkLoad = true
+        }
       }
     }
   }
