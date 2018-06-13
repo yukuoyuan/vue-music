@@ -1,5 +1,5 @@
 <template>
-  <scroll class="listview" :data="data">
+  <scroll class="listview" :data="data" ref="listview">
     <ul>
       <li v-for="(group,index) in data" class="list-group" :key="index" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
@@ -31,6 +31,7 @@
 <script>
   import Scroll from '@/base/scroll/Scroll'
   import Loading from '@/base/loading/Loading'
+  import {getData} from '../../common/js/dom'
 
   export default {
     name: 'List',
@@ -44,6 +45,9 @@
         currentIndex: 0
       }
     },
+    created () {
+
+    },
     computed: {
       shortcutList () {
         return this.data.map((group) => {
@@ -56,10 +60,18 @@
       Loading
     },
     methods: {
-      onShortcutTouchStart () {
-
+      /**
+       * 触摸开始调用的方法
+       */
+      onShortcutTouchStart (e) {
+        let anchorIndex = getData(e.target, 'index')
+        this.$refs.listview.scrollToElement(this.$refs.listGroup[anchorIndex], 0)
       },
-      onShortcutTouchMove () {
+      /**
+       * 当触摸移动的时候调用的方法
+       * @param e
+       */
+      onShortcutTouchMove (e) {
 
       }
     }
