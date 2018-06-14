@@ -1,5 +1,6 @@
 <template>
-  <scroll class="listview" :data="data" ref="listview">
+  <scroll class="listview" :data="data" ref="listview" :probeType="probeType" @scroll="scroll"
+          :listenScroll="listenScroll">
     <ul>
       <li v-for="(group,index) in data" class="list-group" :key="index" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
@@ -33,6 +34,7 @@
   import Loading from '@/base/loading/Loading'
   import {getData} from '../../common/js/dom'
 
+  const ANCHOR_HEIGHT = 18
   export default {
     name: 'List',
     props: {
@@ -42,11 +44,15 @@
     },
     data () {
       return {
-        currentIndex: 0
+        currentIndex: 0,
+        scrollY: -1
       }
     },
     created () {
-
+      this.touch = []
+      this.listenScroll = true
+      this.listHeight = []
+      this.probeType = 3
     },
     computed: {
       shortcutList () {
@@ -65,14 +71,66 @@
        */
       onShortcutTouchStart (e) {
         let anchorIndex = getData(e.target, 'index')
-        this.$refs.listview.scrollToElement(this.$refs.listGroup[anchorIndex], 0)
+        let firstTouch = e.touches[0]
+        this.touch.y1 = firstTouch.pageY
+        this.touch.anchorIndex = anchorIndex
+        this._scrollTo(anchorIndex)
       },
       /**
        * 当触摸移动的时候调用的方法
        * @param e
        */
       onShortcutTouchMove (e) {
-
+        let firstTouch = e.touches[0]
+        this.touch.y2 = firstTouch.pageY
+        /**
+         * 计算出偏移了几个(向下取整)
+         * @type {number}
+         */
+        let delta = Math.floor((this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT)
+        // 因为获取到的是一个字符串,所以需要转换一下
+        let anchorIndex = parseInt(this.touch.anchorIndex) + delta
+        this._scrollTo(anchorIndex)
+      },
+      scroll (pos) {
+        this.scrollY = pos.y
+      },
+      _scrollTo (index) {
+        this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
+      },
+      _caculateHeight () {
+        //  获取dom集合
+        const list = this.$refs.listGroup
+        let height = 0
+        this.listHeight.push(height)
+        for (let i = 0; i < list.length; i++) {
+          let item = list[i]
+          height += item.clientHeight
+          this.listHeight.push(height)
+        }
+      }
+    },
+    watch: {
+      data () {
+        setTimeout(() => {
+          this._caculateHeight()
+        }, 20)
+      },
+      scrollY (newY) {
+        // 滚动到顶部的时候
+        if (newY > 0) {
+          this.currentIndex = 0
+          return
+        }
+        newY = Math.abs(newY)
+        const listHeight = this.listHeight
+        for (let i = 0; i < listHeight.length - 1; i++) {
+          let height = listHeight[i]
+          if (newY < height) {
+            this.currentIndex = i
+            break
+          }
+        }
       }
     }
   }
