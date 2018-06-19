@@ -26,6 +26,9 @@
     <div v-show="!data.length" class="loading-container">
       <loading></loading>
     </div>
+    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
+      <h1 class="fixed-title">{{fixedTitle}}</h1>
+    </div>
   </scroll>
 </template>
 
@@ -35,6 +38,8 @@
   import {getData} from '../../common/js/dom'
 
   const ANCHOR_HEIGHT = 18
+  const TITLE_HEIGHT = 30
+
   export default {
     name: 'List',
     props: {
@@ -45,7 +50,9 @@
     data () {
       return {
         currentIndex: 0,
-        scrollY: -1
+        scrollY: -1,
+        diff: -1,
+        fixedTop: 0
       }
     },
     created () {
@@ -59,6 +66,12 @@
         return this.data.map((group) => {
           return group.title.substr(0, 1)
         })
+      },
+      fixedTitle () {
+        if (this.scrollY > 0) {
+          return ''
+        }
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
     },
     components: {
@@ -74,6 +87,7 @@
         let firstTouch = e.touches[0]
         this.touch.y1 = firstTouch.pageY
         this.touch.anchorIndex = anchorIndex
+        this.currentIndex = anchorIndex
         this._scrollTo(anchorIndex)
       },
       /**
@@ -90,6 +104,7 @@
         let delta = Math.floor((this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT)
         // 因为获取到的是一个字符串,所以需要转换一下
         let anchorIndex = parseInt(this.touch.anchorIndex) + delta
+        this.currentIndex = anchorIndex
         this._scrollTo(anchorIndex)
       },
       scroll (pos) {
@@ -117,20 +132,31 @@
         }, 20)
       },
       scrollY (newY) {
+        const listHeight = this.listHeight
         // 滚动到顶部的时候
         if (newY > 0) {
           this.currentIndex = 0
           return
         }
         newY = Math.abs(newY)
-        const listHeight = this.listHeight
         for (let i = 0; i < listHeight.length - 1; i++) {
-          let height = listHeight[i]
-          if (newY < height) {
+          let height1 = listHeight[i]
+          let height2 = listHeight[i + 1]
+
+          if (-newY >= height1 && newY < height2) {
             this.currentIndex = i
+            this.diff = height2 + newY
             break
           }
         }
+      },
+      diff (newVal) {
+        let fixedTop = (newVal > 0 && newVal && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+        if (this.fixedTop === fixedTop) {
+          return
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
       }
     }
   }
