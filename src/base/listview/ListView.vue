@@ -123,6 +123,13 @@
           height += item.clientHeight
           this.listHeight.push(height)
         }
+      },
+      /**
+       * 跳转到歌手详情界面
+       * @param item
+       */
+      selectItem (item) {
+        this.$emit('select', item)
       }
     },
     watch: {
